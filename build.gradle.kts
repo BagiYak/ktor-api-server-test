@@ -21,6 +21,7 @@ repositories {
 }
 
 dependencies {
+
     // server
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
