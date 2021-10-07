@@ -29,6 +29,11 @@ dependencies {
     // serialization
     implementation("io.ktor:ktor-serialization:$kotlin_serialization")
 
+    // auth
+    implementation("io.ktor:ktor-auth:$ktor_version")
+    implementation("io.ktor:ktor-auth-jwt:$ktor_version")
+
+
     // log
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
