@@ -1,14 +1,18 @@
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.*
-import routes.registerCustomerRoutes
-import routes.registerOrderRoutes
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.json.serializer.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.serialization.*
-import routes.configureRouting
-import routes.registerAuthRoutes
+import io.ktor.sessions.*
+import models.UserSession
+import routes.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -24,12 +28,25 @@ fun Application.module() {
         json()
     }
 
+    // Google OAuth
+    install(Sessions) {
+        cookie<UserSession>("user_session")
+    }
+    val httpClient = HttpClient(CIO) {
+        install(JsonFeature) {
+            serializer = KotlinxSerializer()
+        }
+    }
+
     // Configure JWT settings (a custom jwt group in the application.conf)
     val secret = environment.config.property("jwt.secret").getString()
     val issuer = environment.config.property("jwt.issuer").getString()
     val audience = environment.config.property("jwt.audience").getString()
     val myRealm = environment.config.property("jwt.realm").getString()
+
     install(Authentication) {
+
+        // JWT auth
         jwt("auth-jwt") {
             realm = myRealm // The realm property allows you to set the realm to be passed in WWW-Authenticate header when accessing a protected route
             verifier( // The verifier function allows you to verify a token format and its signature: HS256, you need to pass a JWTVerifier instance to verify a token
@@ -47,11 +64,30 @@ fun Application.module() {
                 }
             }
         }
+
+        // Google OAuth
+        oauth("auth-oauth-google") {
+            urlProvider = { "http://localhost:8080/callback" }
+            providerLookup = {
+                OAuthServerSettings.OAuth2ServerSettings(
+                    name = "google",
+                    authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
+                    accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
+                    requestMethod = HttpMethod.Post,
+                    clientId = "648496393367-ldvfgs8niqgf2hsa6a6t3fheq43ll701.apps.googleusercontent.com",
+                    clientSecret = "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",
+                    defaultScopes = listOf("https://www.googleapis.com/auth/userinfo.profile")
+                )
+            }
+            client = httpClient
+        }
     }
 
+    // all routes
     configureRouting()
-    registerAuthRoutes(audience, issuer, secret)
     registerCustomerRoutes()
     registerOrderRoutes()
+    loginAuthRoutes(audience, issuer, secret)
+    loginGoogleRoute(httpClient)
 
 }

@@ -11,7 +11,7 @@ import io.ktor.routing.*
 import models.User
 import java.util.*
 
-fun Route.authRouting(
+fun Route.loginRouting(
     audience: String,
     issuer: String,
     secret: String
@@ -33,7 +33,7 @@ fun Route.authRouting(
     }
 
     authenticate("auth-jwt") { // define the authorization for the different resources in our application using the authenticate function
-        get("/hello") {
+        get("/jwt") {
             val principal = call.principal<JWTPrincipal>() // In a case of successful authentication, you can retrieve an authenticated JWTPrincipal inside a route handler using the call.principal function
             val username = principal!!.payload.getClaim("username").asString()      // the value of a custom username claim
             val expiresAt = principal.expiresAt?.time?.minus(System.currentTimeMillis())  // and a token expiration time are retrieved
@@ -43,12 +43,12 @@ fun Route.authRouting(
 
 }
 
-fun Application.registerAuthRoutes(
+fun Application.loginAuthRoutes(
     audience: String,
     issuer: String,
     secret: String
 ) {
     routing {
-        authRouting(audience, issuer, secret)
+        loginRouting(audience, issuer, secret)
     }
 }

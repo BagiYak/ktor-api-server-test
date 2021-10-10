@@ -26,8 +26,14 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
 
+    // client
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-html-builder:$ktor_version")
+
     // serialization
     implementation("io.ktor:ktor-serialization:$kotlin_serialization")
+    implementation("io.ktor:ktor-client-serialization:$ktor_version")
 
     // auth
     implementation("io.ktor:ktor-auth:$ktor_version")
